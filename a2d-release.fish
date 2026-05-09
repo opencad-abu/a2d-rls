@@ -1,6 +1,7 @@
 #!/usr/bin/env fish
 # ============================================================
 # a2d-release.fish — 模拟部门数据发布脚本 (Fish)
+# 作者: 阿布 & OCAD
 #
 # 用法: a2d-release.fish <版本号>
 # 示例: a2d-release.fish v1.0-20260508

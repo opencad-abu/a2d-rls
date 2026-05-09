@@ -94,6 +94,10 @@ cp -r /public/release/v1.0-20260508 /path/to/workspace/
 | rsync 参数 | `--chmod=D775,F644` | 覆盖源文件权限，保证目标端一致 |
 | 服务账号 | a2d (`/sbin/nologin`) | 统一文件归属，不可登录 |
 
+## 作者
+
+阿布 & OCAD
+
 ## License
 
 MIT
