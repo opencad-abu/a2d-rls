@@ -1,62 +1,65 @@
 #!/bin/bash
 # ============================================================
-# a2d-release.sh — 模拟部门数据发布脚本 (Bash)
+# a2drls — 模拟部门数据发布脚本 (Bash)
 # 作者: 阿布 & OCAD
 #
-# 用法: a2d-release.sh <版本号>
-# 示例: a2d-release.sh v1.0-20260508
+# 用法: a2drls release_dir
+# 示例: a2drls v1.0-20260508
 #
-# 权限模型 (SGID + 共享组, 零提权):
-#   - 组名: a2drls
-#   - 目标目录: /public/release/ (2775 a2d:a2drls)
-#   - 目标文件权限: D775 / F644 (组可写、全员可读)
+# 环境变量:
+#   PROJ_A2D_ROOT — 发布目标根路径 (如 /data/proj/public/release)
+#
+# 权限模型:
 #   - 执行者无需 sudo，以自己身份运行
+#   - 目标文件权限: D775 / F644 (组可写、全员可读)
 # ============================================================
 set -euo pipefail
 
-VERSION="${1:-}"
-SRC="/data/sim/${VERSION}"
-DEST="/public/release/${VERSION}"
+RELEASE="${1:-}"
+SRC="${RELEASE}"
 
-# --- 参数检查 ---
-if [[ -z "$VERSION" ]]; then
-    echo "用法: $0 <版本号>"
-    echo "示例: $0 v1.0-20260508"
+# --- 检查 PROJ_A2D_ROOT ---
+if [[ -z "${PROJ_A2D_ROOT:-}" ]]; then
+    echo "ERROR: PROJ_A2D_ROOT is not set"
+    echo "       export PROJ_A2D_ROOT=/data/proj/public/release"
+    exit 2
+fi
+
+DEST="${PROJ_A2D_ROOT}/${RELEASE}"
+
+if [[ -z "$RELEASE" ]]; then
+    echo "Usage   : $0 <版本号>"
+    echo "Example : $0 v1.0-20260508"
     exit 1
 fi
 
 if [[ ! -d "$SRC" ]]; then
-    echo "错误: 源目录不存在: $SRC"
-    exit 2
+    echo "ERROR: Unable to access: $SRC"
+    exit 3
 fi
 
-# --- 确保新建文件 world-readable ---
 umask 022
 
-# --- 创建目标版本目录 ---
 mkdir -p -m 775 "$DEST"
-
-# --- rsync 同步 ---
-echo "=================================="
-echo "  发布: ${VERSION}"
-echo "  操作者: $(whoami)"
-echo "  源:   ${SRC}"
-echo "  目标: ${DEST}"
-echo "=================================="
+echo "==============================================================================="
+echo "  Release  : $RELEASE"
+echo "  Operator : $(whoami)"
+echo "  Source   : $SRC"
+echo "  Target   : $DEST"
+echo "==============================================================================="
 
 rsync -av \
     --chmod=D775,F644 \
     --delete \
-    "${SRC}/" \
-    "${DEST}/"
+    "$SRC/" \
+    "$DEST/"
 
-# --- 修正组归属（rsync 保留源组，需显式覆盖） ---
 chgrp -R a2drls "$DEST"
 
 echo ""
-echo "✅ 发布完成: ${VERSION} → ${DEST}"
+echo "✅ Finished release: $RELEASE → $DEST"
 echo ""
-echo "目标文件列表:"
-find "$DEST" -type f | sort | while read -r f; do
+echo "Target file list:"
+find "$DEST" -type f | sort | while read f; do
     stat -c '%a %U:%G  %n' "$f"
 done
