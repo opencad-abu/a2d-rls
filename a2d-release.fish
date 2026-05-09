@@ -49,6 +49,9 @@ rsync -av \
     "$SRC/" \
     "$DEST/"
 
+# --- 修正组归属（rsync 保留源组，需显式覆盖） ---
+chgrp -R a2drls "$DEST"
+
 echo ""
 echo "✅ 发布完成: $VERSION → $DEST"
 echo ""
